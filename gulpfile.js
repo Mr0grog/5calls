@@ -12,7 +12,7 @@ var gulp = require('gulp')
   , uglify = require('gulp-uglify')
   , http_server = require('http-server')
   , connect_logger = require('connect-logger')
-  , mocha = require('gulp-mocha');
+  , mochaPhantomJS = require('gulp-mocha-phantomjs')
   ;
 
 var SRC = {
@@ -27,7 +27,8 @@ var DEST = {
   html:'./app/static',
   css: './app/static/css',
   img: './app/static/img',
-  js:  './app/static/js'
+  js:  './app/static/js',
+  jsTest: './app/test/js'
 };
 
 gulp.task('html', function() {
@@ -103,8 +104,35 @@ gulp.task('build-scripts', function() {
     .pipe(gulp.dest(DEST.js));
 });
 
+gulp.task('test-scripts', function () {
+  const output = gulp.dest(DEST.jsTest);
+
+  const files = [];
+  const fileStream = gulp.src(`${SRC.js}/**/*_test.js`);
+  fileStream
+    .on('data', file => files.push(file.path))
+    .on('end', () => {
+      const b = browserify({
+        entries: files,
+        debug: true,
+        transform: [es2040]
+      });
+
+      b.bundle()
+        .pipe(source('app-tests.js'))
+        .pipe(buffer())
+        .pipe(output);
+    });
+
+  return output;
+});
+
 gulp.task('scripts:watch', function() {
   gulp.watch(`${SRC.js}/**/*.js`, ['scripts']);
+});
+
+gulp.task('test-support', function () {
+    return gulp.src('./static/test/*').pipe(gulp.dest('./app/test/'));
 });
 
 gulp.task('extra', function() {
@@ -112,11 +140,13 @@ gulp.task('extra', function() {
     .pipe(gulp.dest(DEST.html));
 });
 
-gulp.task('test', function() {
-  return gulp.src(['**/*_test.js', '!./node_modules/**'], { read: false })
-    .pipe(mocha({
-      reporter: 'spec',
-    }));
+gulp.task('test', ['test-support', 'test-scripts'], function() {
+  return gulp.src('./app/test/test.html')
+      .pipe(mochaPhantomJS({
+        phantomjs: {
+          useColors:true
+        }
+      }));
 });
 
 gulp.task('default', ['html', 'html:watch', 'html:serve', 'sass', 'sass:watch', 'copy-images', 'copy-images:watch', 'scripts', 'scripts:watch', 'extra']);
