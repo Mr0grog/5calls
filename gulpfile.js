@@ -13,6 +13,8 @@ var gulp = require('gulp')
   , http_server = require('http-server')
   , connect_logger = require('connect-logger')
   , mochaPhantomJS = require('gulp-mocha-phantomjs')
+  , through = require('through2')
+  , fs = require('fs')
   ;
 
 var SRC = {
@@ -108,7 +110,7 @@ gulp.task('test-scripts', function () {
   const output = gulp.dest(DEST.jsTest);
 
   const files = [];
-  const fileStream = gulp.src(`${SRC.js}/**/*_test.js`);
+  const fileStream = gulp.src(`${SRC.js}/**/*_test.js`, {read: false});
   fileStream
     .on('data', file => files.push(file.path))
     .on('end', () => {
@@ -132,7 +134,7 @@ gulp.task('scripts:watch', function() {
 });
 
 gulp.task('test-support', function () {
-    return gulp.src('./static/test/*').pipe(gulp.dest('./app/test/'));
+  return gulp.src('./static/test/*').pipe(gulp.dest('./app/test/'));
 });
 
 gulp.task('extra', function() {
@@ -141,6 +143,45 @@ gulp.task('extra', function() {
 });
 
 gulp.task('test', ['test-support', 'test-scripts'], function() {
+  const testPort = 8001;
+
+  const phantomStream = mochaPhantomJS({
+    phantomjs: {
+      useColors:true
+    }
+  });
+
+  const testServer = new http_server.HttpServer({
+    root: 'app/test',
+    before: [
+      function (request, response) {
+        const safeModulePaths = [
+          '/node_modules/mocha/mocha.css',
+          '/node_modules/mocha/mocha.js',
+          '/node_modules/source-map-support/browser-source-map-support.js',
+        ];
+        if (safeModulePaths.includes(request.url)) {
+          const filePath = `.${request.url}`;
+          fs.createReadStream(filePath).pipe(response);
+          return;
+        }
+        response.emit('next');
+      }
+    ]
+  });
+
+  testServer.listen(testPort, function () {
+    util.log(`Test server started on port ${testPort}`);
+
+    phantomStream.write({path: `http://localhost:${testPort}/test.html`});
+    phantomStream.end();
+    phantomStream.on('error', () => testServer.close());
+    phantomStream.on('end', () => testServer.close());
+  });
+
+  return phantomStream;
+
+
   return gulp.src('./app/test/test.html')
       .pipe(mochaPhantomJS({
         phantomjs: {

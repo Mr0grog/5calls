@@ -9,7 +9,57 @@
   <div id="mocha"></div>
 
   <script src="../../node_modules/mocha/mocha.js"></script>
-  <script>mocha.setup('bdd')</script>
+  <script src="../../node_modules/source-map-support/browser-source-map-support.js"></script>
+
+  <script>
+    function parseStackLine (line) {
+      var lineParts = line.match(/(?:^|@)(.*):(\d*):(\d*)/);
+      var file = lineParts[1];
+      var row = lineParts[2];
+      var column = lineParts[3];
+      return {
+        isNative: function() { return false; },
+        getFileName: function() { return file; },
+        getLineNumber: function() { return Number(row); },
+        getColumnNumber: function() { return Number(column); }
+      };
+    }
+
+    function fixStackTrace (error) {
+      if (error.stack) {
+        error._stack = error.stack;
+
+        error.stack = error.stack.split('\n').map(function (line) {
+          if (line.match(/\.js:\d+:\d+/)) {
+            var mapped = sourceMapSupport.wrapCallSite(parseStackLine(line));
+            return line.replace(/^(.*):(\d*):(\d*)/, function (match, prefix) {
+              var prefixMatch = prefix.match(/^([^@]*)@/);
+              var context = prefixMatch ? prefixMatch[1] : '[anonymous]';
+              return 'in ' + context + ' (' + mapped.getFileName() + ':' + mapped.getLineNumber() + ')';
+            });
+          }
+          else {
+            return line;
+          }
+        }).join('\n');
+      }
+    }
+
+    // In PhantomJS, clean up stack traces to use source maps before listing errors
+    if (window.callPhantom) {
+      const _list = Mocha.reporters.Base.list;
+      Mocha.reporters.Base.list = function (failures) {
+        failures.forEach(function (test) {
+          if (!test.err._stack) {
+            fixStackTrace(test.err);
+          }
+        });
+        return _list.apply(this, arguments);
+      };
+    }
+
+    mocha.setup('bdd');
+  </script>
   <script src="js/app-tests.js"></script>
   <script>
     mocha.checkLeaks();
