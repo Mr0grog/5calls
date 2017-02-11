@@ -12,7 +12,8 @@ var gulp = require('gulp')
   , uglify = require('gulp-uglify')
   , http_server = require('http-server')
   , connect_logger = require('connect-logger')
-  , mocha = require('gulp-mocha');
+  , mochify = require('mochify')
+  , path = require('path')
   ;
 
 var SRC = {
@@ -20,7 +21,8 @@ var SRC = {
   scss:    './static/scss',
   img:     './static/img',
   js:      './static/js',
-  extra:   './static/rootExtra'
+  extra:   './static/rootExtra',
+  test:    './test'
 };
 
 var DEST = {
@@ -113,10 +115,12 @@ gulp.task('extra', function() {
 });
 
 gulp.task('test', function() {
-  return gulp.src(['**/*_test.js', '!./node_modules/**'], { read: false })
-    .pipe(mocha({
-      reporter: 'spec',
-    }));
+  const testFiles = `${SRC.js}/**/*_test.js`;
+  return mochify(testFiles, {
+    require: `${SRC.test}/setup_test.js`,
+    reporter : 'spec',
+    transform: ['es2040']
+  }).bundle();
 });
 
 gulp.task('default', ['html', 'html:watch', 'html:serve', 'sass', 'sass:watch', 'copy-images', 'copy-images:watch', 'scripts', 'scripts:watch', 'extra']);
