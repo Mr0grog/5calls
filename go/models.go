@@ -20,7 +20,7 @@ type Issue struct {
 }
 
 func (i *Issue) String() string {
-	return asJson(i)
+	return asJSON(i)
 }
 
 // Contact is a single point of contact related to an issue
@@ -37,7 +37,7 @@ type Contact struct {
 }
 
 func (c *Contact) String() string {
-	return asJson(c)
+	return asJSON(c)
 }
 
 // LocalReps are the contacts that constitute local representatives

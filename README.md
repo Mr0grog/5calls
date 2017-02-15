@@ -107,13 +107,14 @@ Edit the `appUrl` variable in `static/js/main.js` to be `http://localhost:8090` 
 ## Unit tests
 
 #### JavaScript 
-JavaScript unit tests are written using ```Mocha``` and ```Chai``` and run in the ```Karma``` test runner.
+
+JavaScript unit tests are written using ```Mocha``` and ```Chai``` and run in the ```Karma``` test runner. You must have the Google Chrome browser installed to run them.
 
 Run the unit tests with:
 
 ```npm test```
 
-Run the unit tests in watch mode with:
+If you are working on JavaScript code, you can make the tests automatically re-run whenever you change a relevant file with:
 
 ```npm run test:watch```
 

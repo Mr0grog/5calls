@@ -74,7 +74,7 @@ type atContact struct {
 	atContactInfo `json:"fields"`
 }
 
-func (c *atContact) String() string { return asJson(c) }
+func (c *atContact) String() string { return asJSON(c) }
 
 func (c *atContact) toContact(cli *AirtableClient, wg *sync.WaitGroup) Contact {
 	var photourl string
