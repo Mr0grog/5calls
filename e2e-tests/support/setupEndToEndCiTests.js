@@ -13,6 +13,9 @@ const chrome = require('selenium-webdriver/chrome');
 const chromedriver = require('chromedriver');
 chrome.setDefaultService(new chrome.ServiceBuilder(chromedriver.path).build());
 
+// The first connection can be slow; Sauce's VM may still be starting :(
+config.defaultTimeout = 30000;
+
 test.before(function() {
   const sauceUser = process.env.SAUCE_USERNAME;
   const sauceKey = process.env.SAUCE_ACCESS_KEY;
@@ -21,8 +24,7 @@ test.before(function() {
     .withCapabilities({
       browserName: 'chrome',
       platform: 'Windows 10',
-      version: 'latest',
-      timeout: 20000
+      version: 'latest'
     })
     .build();
   this.baseUrl = config.getBaseUrl();
