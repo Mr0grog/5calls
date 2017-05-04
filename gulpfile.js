@@ -209,8 +209,6 @@ gulp.task('test:e2e', function() {
 
 gulp.task('test:e2e:ci', function(done) {
   sauceConnectLauncher({
-    username: process.env.SAUCE_USERNAME,
-    accessKey: process.env.SAUCE_ACCESS_KEY,
     port: process.env.SAUCE_PORT
   }, function (error, sauceConnect) {
     if (error) {
