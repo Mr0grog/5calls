@@ -1,4 +1,6 @@
 machine:
+  environment:
+    SAUCE_CONNECT_DOWNLOAD_ON_INSTALL: true
   node:
     version: 6.9.5
 
@@ -7,5 +9,4 @@ test:
     - ./node_modules/.bin/gulp test:ci
     # FIXME: THIS IS LAZY AND BAD! Circle will kill everything in the end, but
     # this line should not be merged into master. Needs cleanup.
-    - ./node_modules/.bin/gulp &
-    - ./node_modules/.bin/gulp test:e2e:ci
+    - ./node_modules/.bin/gulp & ./node_modules/.bin/gulp test:e2e:ci
