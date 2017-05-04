@@ -15,6 +15,7 @@ var gulp = require('gulp')
   , spawn = require('child_process').spawn
   , mocha = require('gulp-mocha')
   , path = require('path')
+  , sauceConnectLauncher = require('sauce-connect-launcher')
   ;
 
 var SRC = {
@@ -168,6 +169,24 @@ function runKarmaTests ({singleRun, configFile} = {}) {
   });
 }
 
+function runE2ETests (options = {}) {
+  const mochaOptions = Object.assign({
+    reporter: 'spec',
+    timeout: 20000
+  }, options.mocha);
+
+  if (process.argv.includes('--grep')) {
+    const grepValue = process.argv[process.argv.indexOf('--grep') + 1];
+    mochaOptions.grep = new RegExp(grepValue);
+  }
+
+  return gulp.src([
+    options.setup || './e2e-tests/support/setupEndToEndTests.js',
+    './e2e-tests/{*,!(support)/*}.js'
+  ])
+    .pipe(mocha(mochaOptions));
+}
+
 gulp.task('test:js-unit', function() {
   return runKarmaTests({singleRun: true});
 });
@@ -185,21 +204,42 @@ gulp.task('test:watch', function() {
  * gulp test:e2e --grep 'from issue page'
  */
 gulp.task('test:e2e', function() {
-  const mochaOptions = {
-    reporter: 'spec',
-    timeout: 6000
-  };
+  return runE2ETests();
+});
 
-  if (process.argv.includes('--grep')) {
-    const grepValue = process.argv[process.argv.indexOf('--grep') + 1];
-    mochaOptions.grep = new RegExp(grepValue);
-  }
-
-  return gulp.src([
-    './e2e-tests/support/setupEndToEndTests.js',
-    './e2e-tests/{*,!(support)/*}.js'
-  ])
-    .pipe(mocha(mochaOptions));
+gulp.task('test:e2e:ci', function(done) {
+  sauceConnectLauncher({
+    username: process.env.SAUCE_USERNAME,
+    accessKey: process.env.SAUCE_ACCESS_KEY,
+    port: process.env.SAUCE_PORT
+  }, function (error, sauceConnect) {
+    if (error) {
+      return done(error);
+    }
+    util.log('Sauce Connect Tunnel Running');
+    
+    let completed = false;
+    function cleanup (error) {
+      if (completed) {
+        return;
+      }
+      completed = true;
+      sauceConnect.close(function () {
+        util.log('Sauce Connect Tunnel Closed');
+        done(error);
+      });
+    }
+    
+    runE2ETests({
+      setup: './e2e-tests/support/setupEndToEndCiTests.js',
+      mocha: {
+        // setting up the initial connection to Sauce Labs can be slow
+        timeout: 30000
+      }
+    })
+      .on('error', cleanup)
+      .on('end', () => cleanup());
+  });
 });
 
 // Designed for running tests in continuous integration. The main difference

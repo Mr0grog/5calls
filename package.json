@@ -39,6 +39,7 @@
     "karma-mocha-reporter": "^2.2.2",
     "karma-sauce-launcher": "^1.1.0",
     "mocha": "^3.2.0",
+    "sauce-connect-launcher": "^1.2.2",
     "selenium-webdriver": "^3.1.0",
     "sinon": "^1.17.7",
     "vinyl-buffer": "^1.0.0",

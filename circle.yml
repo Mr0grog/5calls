@@ -5,3 +5,7 @@ machine:
 test:
   override:
     - ./node_modules/.bin/gulp test:ci
+    # FIXME: THIS IS LAZY AND BAD! Circle will kill everything in the end, but
+    # this line should not be merged into master. Needs cleanup.
+    - ./node_modules/.bin/gulp &
+    - ./node_modules/.bin/gulp test:e2e:ci
