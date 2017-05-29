@@ -17,6 +17,8 @@ var gulp = require('gulp')
   , path = require('path')
   , sauceConnectLauncher = require('sauce-connect-launcher')
   , stream = require('stream')
+  , streamArray = require('stream-array')
+  , sauceBrowsers = require('./e2e-tests/support/sauce-browsers')
   ;
 
 var SRC = {
@@ -211,14 +213,50 @@ gulp.task('test:e2e', function() {
 gulp.task('test:e2e:ci', function() {
   return inSauceTunnel({port: process.env.SAUCE_PORT}, () => {
     util.log('Sauce Connect Tunnel Running');
-     
-    return runE2ETests({
-      setup: './e2e-tests/support/setupEndToEndCiTests.js',
-      mocha: {
-        // setting up the initial connection to Sauce Labs can be slow
-        timeout: 30000
-      }
-    });
+    
+    const errors = [];
+    return streamArray(Object.keys(sauceBrowsers))
+      // TODO: it would be nice to find a way to run these tests in parallel,
+      // but unfortunately gulp-mocha outputs directly to stdout (in which case
+      // we get confusing, interleaved output from simultaneous tests) or does
+      // not stream at all and returns separate stdout and stderr strings (in
+      // which case we get confusing, *non*-interleaved stdout and stderr).
+      .pipe(new stream.Transform({
+        objectMode: true,
+        transform (browser, encoding, callback) {
+          console.log(`Testing in ${browser} -----------------------------`);
+          
+          let completed = false;
+          process.env.CI_BROWSER = browser;
+          runE2ETests({
+            setup: './e2e-tests/support/setupEndToEndCiTests.js',
+            mocha: {
+              // setting up the initial connection to Sauce Labs can be slow
+              timeout: 30000
+            }
+          })
+            .on('error', () => {
+              errors.push(browser);
+              completed = true;
+              callback();
+            })
+            .on('end', () => {
+              if (!completed) {
+                completed = true;
+                callback();
+              }
+            });
+        },
+        flush (callback) {
+          if (errors.length) {
+            const count = errors.length;
+            const pluralized = `${count} browser${count > 1 ? 's' : ''}`;
+            const message = `Errors in ${pluralized}: ${errors.join(', ')}.`;
+            this.emit('error', new util.PluginError('E2E Tests', message));
+          }
+          callback();
+        }
+      }));
   });
 });
 

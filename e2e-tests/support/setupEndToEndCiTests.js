@@ -9,24 +9,13 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const config = require('./e2e-tests.config');
 const test = require('selenium-webdriver/testing');
-const chrome = require('selenium-webdriver/chrome');
-const chromedriver = require('chromedriver');
-chrome.setDefaultService(new chrome.ServiceBuilder(chromedriver.path).build());
+const sauceBrowsers = require('./sauce-browsers');
 
 // The first connection can be slow; Sauce's VM may still be starting :(
 config.defaultTimeout = 30000;
 
 test.before(function() {
-  const sauceUser = process.env.SAUCE_USERNAME;
-  const sauceKey = process.env.SAUCE_ACCESS_KEY;
-  this.driver = new webdriver.Builder()
-    .usingServer(`https://${sauceUser}:${sauceKey}@ondemand.saucelabs.com:443/wd/hub`)
-    .withCapabilities({
-      browserName: 'chrome',
-      platform: 'Windows 10',
-      version: 'latest'
-    })
-    .build();
+  this.driver = buildBrowser(process.env.CI_BROWSER);
   this.baseUrl = config.getBaseUrl();
 });
 
@@ -35,3 +24,23 @@ test.after(function() {
     this.driver.quit();
   }
 });
+
+function buildBrowser (name) {
+  const capabilities = sauceBrowsers[name];
+  
+  if (!capabilities) {
+    throw new Error(`Unknown browser: "${name}"`);
+  }
+  
+  const user = process.env.SAUCE_USERNAME;
+  const key = process.env.SAUCE_ACCESS_KEY;
+  if (!user || !key) {
+    throw new Error(`SAUCE_USERNAME and SAUCE_ACCESS_KEY env vars are not set`);
+  }
+  
+  const hubUrl = `https://${user}:${key}@ondemand.saucelabs.com:443/wd/hub`;
+  return new webdriver.Builder()
+    .usingServer(hubUrl)
+    .withCapabilities(capabilities)
+    .build();
+}
