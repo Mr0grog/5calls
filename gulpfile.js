@@ -16,6 +16,7 @@ var gulp = require('gulp')
   , mocha = require('gulp-mocha')
   , path = require('path')
   , sauceConnectLauncher = require('sauce-connect-launcher')
+  , stream = require('stream')
   ;
 
 var SRC = {
@@ -207,36 +208,17 @@ gulp.task('test:e2e', function() {
   return runE2ETests();
 });
 
-gulp.task('test:e2e:ci', function(done) {
-  sauceConnectLauncher({
-    port: process.env.SAUCE_PORT
-  }, function (error, sauceConnect) {
-    if (error) {
-      return done(error);
-    }
+gulp.task('test:e2e:ci', function() {
+  return inSauceTunnel({port: process.env.SAUCE_PORT}, () => {
     util.log('Sauce Connect Tunnel Running');
-    
-    let completed = false;
-    function cleanup (error) {
-      if (completed) {
-        return;
-      }
-      completed = true;
-      sauceConnect.close(function () {
-        util.log('Sauce Connect Tunnel Closed');
-        done(error);
-      });
-    }
-    
-    runE2ETests({
+     
+    return runE2ETests({
       setup: './e2e-tests/support/setupEndToEndCiTests.js',
       mocha: {
         // setting up the initial connection to Sauce Labs can be slow
         timeout: 30000
       }
-    })
-      .on('error', cleanup)
-      .on('end', () => cleanup());
+    });
   });
 });
 
@@ -271,3 +253,71 @@ gulp.task('test', ['eslint', 'test:js-unit']);
 
 gulp.task('default', ['html', 'html:watch', 'html:serve', 'sass', 'sass:watch', 'copy-images', 'copy-images:watch', 'scripts', 'scripts:watch', 'extra', 'locales']);
 gulp.task('deploy', ['html', 'sass', 'build-scripts', 'extra', 'copy-images', 'locales']);
+
+
+// Utilities ----------------------------------------------
+
+/**
+ * Open a Sauce Connect tunnel, run an (async) operation, and close the tunnel
+ * when complete.
+ * 
+ * @param {any} [options] Options for configuring the Sauce Connect tunnel
+ * @param {Function} tunneledOperation The operation to perform with the tunnel
+ *        open. Should return a promise or stream.
+ * @returns {ReadableStream}
+ */
+function inSauceTunnel (options, tunneledOperation) {
+  if (arguments.length === 1) {
+    tunneledOperation = options;
+    options = {};
+  }
+  
+  const outputStream = new stream.PassThrough({objectMode: true});
+  const complete = error => {
+    if (error) { outputStream.emit('error', error) }
+    outputStream.end();
+  };
+  
+  sauceConnectLauncher(options, (error, tunnel) => {
+    if (error) {
+      return complete(error);
+    }
+    
+    streamValue(tunneledOperation(tunnel))
+      .on('error', error => {
+        tunnel.close(closeError => complete(error || closeError));
+      })
+      .on('end', () => tunnel.close(complete))
+      // do not auto-end -- we want to wait for the tunnel to close first
+      .pipe(outputStream, {end: false});
+  });
+  
+  return outputStream;
+}
+
+/**
+ * Convert a promise, single value, or stream into a stream.
+ * 
+ * @param {any} value Value to convert into a stream
+ * @returns {ReadableStream}
+ */
+function streamValue (value) {
+  if (value instanceof stream.Stream) {
+    return value;
+  }
+  
+  return new stream.Readable({
+    objectMode: true,
+    read () {
+      if (value.then) {
+        value
+          .then(result => (this.push(result), this.push(null)))
+          .catch(error => this.emit('error', error));
+      }
+      else {
+        this.push(value);
+        this.push(null);
+      }
+    }
+  });
+}
