@@ -18,7 +18,9 @@ test.describe('Should be able to navigate', function() {
 
   test.before(function() {
     goBackTo = function(makeExpectedPage) {
-      this.driver.navigate().back();
+      // Geckodriver appears to have issues with history navigation when pushstate is used
+      // so just go back via JS instead ¯\_(ツ)_/¯
+      this.driver.executeScript(() => window.history.back());
       // assert we end up on expected page.
       page = makeExpectedPage(this.driver);
     }.bind(this);
