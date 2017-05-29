@@ -12,7 +12,7 @@ const test = require('selenium-webdriver/testing');
 const sauceBrowsers = require('./sauce-browsers');
 
 // The first connection can be slow; Sauce's VM may still be starting :(
-config.defaultTimeout = 30000;
+config.defaultTimeout = 60000;
 
 test.before(function() {
   this.driver = buildBrowser(process.env.CI_BROWSER);
