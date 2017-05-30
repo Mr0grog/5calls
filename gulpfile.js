@@ -19,7 +19,6 @@ var gulp = require('gulp')
   , sauceConnectLauncher = require('sauce-connect-launcher')
   , stream = require('stream')
   , streamArray = require('stream-array')
-  , sauceBrowsers = require('./e2e-tests/support/sauce-browsers')
   ;
 
 var SRC = {
@@ -216,7 +215,7 @@ gulp.task('test:e2e:ci', function() {
     util.log('Sauce Connect Tunnel Running');
     
     const errors = [];
-    return streamArray(Object.keys(sauceBrowsers))
+    return streamArray(['Chrome', 'Firefox'])
       // TODO: it would be nice to find a way to run these tests in parallel,
       // but unfortunately gulp-mocha outputs directly to stdout (in which case
       // we get confusing, interleaved output from simultaneous tests) or does

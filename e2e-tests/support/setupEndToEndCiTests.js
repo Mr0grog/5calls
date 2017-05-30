@@ -9,7 +9,7 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const config = require('./e2e-tests.config');
 const test = require('selenium-webdriver/testing');
-const sauceBrowsers = require('./sauce-browsers');
+const sauceBrowsers = require('../../sauce-browsers');
 
 // The first connection can be slow; Sauce's VM may still be starting :(
 config.defaultTimeout = 60000;
