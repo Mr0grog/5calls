@@ -1,3 +1,5 @@
+/* global window */
+
 /**
  * Application navigation end-to-end tests
  *
