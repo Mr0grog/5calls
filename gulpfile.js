@@ -1,3 +1,4 @@
+/* eslint no-console: "off" */
 'use strict';
 
 var gulp = require('gulp')
@@ -245,7 +246,8 @@ gulp.task('test:e2e:ci', function() {
                 completed = true;
                 callback();
               }
-            });
+            })
+            .resume();
         },
         flush (callback) {
           if (errors.length) {
