@@ -62,6 +62,14 @@ class BasePage {
                   wait, opt_message)
         .then(() => {return driver.findElement(selector)}));
   }
+  
+  fillInput(inputElement, text) {
+    // TODO: replace this with `element.sendKeys` once selenium > 2.4.0 is out:
+    // https://github.com/SeleniumHQ/selenium/pull/3905
+    this.driver.executeScript(function (element, text) {
+      element.value = text;
+    }, inputElement, text);
+  }
 }
 
 module.exports = BasePage;

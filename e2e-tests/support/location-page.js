@@ -42,7 +42,7 @@ class LocationPage extends BasePage {
       'Location input text box not found', config.defaultTimeout * 2);
     const submit = this.waitForElement(submitSelector,
       'Location submit button not found');
-    input.sendKeys(location);
+    this.fillInput(input, location);
     submit.click();
   }
 

@@ -16,9 +16,10 @@ test.describe('location lookup', function() {
   test.it('Should lookup location by zip code', function() {
     const location = '12222';
 
+    // FIXME: should add a way to stub location data so we don't need to wait
     // give the IP lookup a chance to complete;
     //  otherwise it interferes with the location lookup
-    this.driver.sleep(2000);
+    this.driver.sleep(5000);
 
     // click on location to display location input box
     page.displayLocationInputBox();
@@ -36,7 +37,7 @@ test.describe('location lookup', function() {
 
     // give the IP lookup a chance to complete;
     //  otherwise it interferes with the location lookup
-    this.driver.sleep(2000);
+    this.driver.sleep(5000);
 
     // click on location to display location input box
     page.displayLocationInputBox();
@@ -55,7 +56,7 @@ test.describe('location lookup', function() {
 
     // give the IP lookup a chance to complete;
     //  otherwise it interferes with the location lookup
-    this.driver.sleep(2000);
+    this.driver.sleep(5000);
 
     // click on location to display location input box
     page.displayLocationInputBox();
