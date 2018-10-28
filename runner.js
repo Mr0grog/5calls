@@ -19,7 +19,12 @@ const runTest = async browser => {
       return runner
         .src(['web-tests/*.ts'])
         .browsers(browser)
-        .run();
+        .run({
+          assertionTimeout: 8000,
+          pageLoadTimeout: 10000,
+          selectorTimeout: 20000,
+          speed: 0.5
+        });
     })
     .then(async failedCount => {
       console.log('Tests failed: ' + failedCount);

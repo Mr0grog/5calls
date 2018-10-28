@@ -13,7 +13,7 @@ const getWindowLocation = ClientFunction(() => window.location.href);
 fixture`Sidebar`
   .page`http://localhost:3000`
   .beforeEach(async () => {
-    await waitForReact(5000);
+    await waitForReact(10000);
   });
 
 // tslint:disable-next-line:no-shadowed-variable
