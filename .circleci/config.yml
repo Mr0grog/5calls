@@ -34,7 +34,9 @@ jobs:
           name: "End-to-End Tests"
           command: |
             export FORCE_COLOR=1
-            
+            export BROWSERSTACK_PROJECT_NAME=5calls
+            export BROWSERSTACK_BUILD_ID="CIRCLE:$CIRCLE_BUILD_NUM"
+
             # Start test server
             yarn start &
             SERVER_PID=$!
