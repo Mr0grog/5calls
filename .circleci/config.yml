@@ -33,6 +33,8 @@ jobs:
       - run:
           name: "End-to-End Tests"
           command: |
+            export FORCE_COLOR=1
+            
             # Start test server
             yarn start &
             SERVER_PID=$!
