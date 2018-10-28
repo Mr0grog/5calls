@@ -79,7 +79,7 @@ Or if you have access to browserstack, you may run on multiple browsers using th
 `yarn web-tests:browserstack`
 
 #### Running on browserstack
-To run on browserstack, ensure that you have environment variables set for BOWSERSTACK_ACCESS_KEY and BROWSERSTACK_USERNAME to the values of your browserstack account
+To run on browserstack, ensure that you have environment variables set for BROWSERSTACK_ACCESS_KEY and BROWSERSTACK_USERNAME to the values of your browserstack account
 You may view test results on the [dashboard](https://automate.browserstack.com/builds)
 
 #### Debugging and running individual tests
