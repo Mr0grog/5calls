@@ -16,16 +16,13 @@ fixture`IssuePage`
     await waitForReact(10000);
   });
 
-// FIXME: this test seems to reliably fail in all browsers on Browserstack, so
-// it's skipped for now.
 // tslint:disable-next-line:no-shadowed-variable
-test.skip('Link on sidebar navigates to issue page', async t => {
+test('Link on sidebar navigates to issue page', async t => {
   const Sidebar = await ReactSelector('Sidebar');
 
   const IssueItems = await Sidebar.findReact('li');
   const firstIssue = IssueItems.nth(1);
   const linkComponent = await firstIssue.findReact('a');
-  // FIXME: This line is failing in Chrome & Firefox on Browserstack
   const link = await linkComponent.getAttribute('href');
   await t
     .click(firstIssue)
@@ -69,7 +66,6 @@ test.skip('Link on sidebar navigates to issue page', async t => {
   await t.expect(reasonBody.exists).ok('The call contact reason is missing');
 
   const contactOffice = await Selector('.call__contact__show-field-offices');
-  // FIXME: this line is failing in Safari on Browserstack
   await t.expect(contactOffice.exists).ok('The ContactOffice component is missing');
 
   // check for the call script
