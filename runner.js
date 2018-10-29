@@ -20,10 +20,7 @@ const runTest = browser => {
         .src(['web-tests/*.ts'])
         .browsers(browser)
         .run({
-          assertionTimeout: 8000,
-          pageLoadTimeout: 10000,
-          selectorTimeout: 20000,
-          speed: 0.25
+          speed: 0.5
         });
     })
     .then(async failedCount => {
