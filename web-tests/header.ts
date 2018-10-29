@@ -14,7 +14,7 @@ const getWindowLocation = ClientFunction(() => window.location.href);
 fixture`Header`
   .page`http://localhost:3000`
   .beforeEach(async () => {
-    await waitForReact(10000);
+    await waitForReact(15000);
   });
 
 // tslint:disable-next-line:no-shadowed-variable

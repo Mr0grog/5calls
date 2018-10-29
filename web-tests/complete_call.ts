@@ -13,11 +13,11 @@ const getWindowLocation = ClientFunction(() => window.location.href);
 fixture`Complete Call`
   .page`http://localhost:3000`
   .beforeEach(async () => {
-    await waitForReact(10000);
+    await waitForReact(15000);
   });
 
 // tslint:disable-next-line:no-shadowed-variable
-test('Call buttons navigate to done page when clicked trhough', async t => {
+test('Call buttons navigate to done page when clicked through', async t => {
   const Sidebar = await ReactSelector('Sidebar');
 
   const IssueItems = await Sidebar.findReact('li');

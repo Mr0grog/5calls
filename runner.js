@@ -23,7 +23,7 @@ const runTest = async browser => {
           assertionTimeout: 8000,
           pageLoadTimeout: 10000,
           selectorTimeout: 20000,
-          speed: 0.5
+          speed: 0.25
         });
     })
     .then(async failedCount => {
